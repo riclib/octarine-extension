@@ -37,6 +37,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var nativeMessagingHost: NativeMessagingHost?
     var clippingManager: ClippingManager?
     var pomodoroTimer: PomodoroTimer?
+    var iconResetTimer: Timer?
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Create the status item
@@ -65,6 +66,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 pomodoroTimer: pomodoroTimer!
             )
         )
+        
+        // Listen for successful clipping notifications
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(clippingDidSave),
+            name: ClippingManager.didSaveClippingNotification,
+            object: nil
+        )
     }
     
     @objc func togglePopover() {
@@ -73,6 +82,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 popover?.performClose(nil)
             } else {
                 popover?.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+            }
+        }
+    }
+    
+    @objc func clippingDidSave() {
+        // Ensure UI updates happen on main thread
+        DispatchQueue.main.async { [weak self] in
+            // Change icon to success checkmark
+            if let button = self?.statusItem?.button {
+                button.image = NSImage(systemSymbolName: "checkmark.circle.fill", accessibilityDescription: "Success")
+            }
+            
+            // Cancel any existing timer
+            self?.iconResetTimer?.invalidate()
+            
+            // Reset icon after 2 seconds
+            self?.iconResetTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { _ in
+                if let button = self?.statusItem?.button {
+                    button.image = NSImage(systemSymbolName: "doc.text", accessibilityDescription: "Octarine")
+                }
             }
         }
     }

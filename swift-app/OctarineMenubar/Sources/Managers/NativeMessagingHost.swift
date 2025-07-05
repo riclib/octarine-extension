@@ -74,7 +74,7 @@ class NativeMessagingHost {
         
         do {
             let clipMetadata = ClipMetadata(
-                title: metadata["title"] as? String ?? "Untitled",
+                title: (metadata["title"] as? String ?? "Untitled").trimmingCharacters(in: .whitespacesAndNewlines),
                 url: metadata["url"] as? String ?? "",
                 author: metadata["author"] as? String,
                 keywords: metadata["keywords"] as? [String] ?? [],

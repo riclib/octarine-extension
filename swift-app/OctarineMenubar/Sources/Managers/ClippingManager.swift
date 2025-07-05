@@ -4,6 +4,9 @@ class ClippingManager: ObservableObject {
     @Published var recentClippings: [URL] = []
     @Published private(set) var baseURL: URL
     
+    // Notification for successful clipping
+    static let didSaveClippingNotification = Notification.Name("ClippingManager.didSaveClipping")
+    
     private let fileManager = FileManager.default
     private var clippingsURL: URL
     private var dailyNotesURL: URL
@@ -81,20 +84,28 @@ class ClippingManager: ObservableObject {
         let fileURL = clippingsURL.appendingPathComponent(filename)
         try fullContent.write(to: fileURL, atomically: true, encoding: .utf8)
         
-        // Update recent clippings
-        recentClippings.insert(fileURL, at: 0)
-        if recentClippings.count > 10 {
-            recentClippings.removeLast()
+        // Update recent clippings on main thread since it's @Published
+        DispatchQueue.main.async { [weak self] in
+            self?.recentClippings.insert(fileURL, at: 0)
+            if let count = self?.recentClippings.count, count > 10 {
+                self?.recentClippings.removeLast()
+            }
         }
         
         // Optionally add reference to today's daily note
         addToDailyNote(clippingURL: fileURL, metadata: metadata)
+        
+        // Post notification for successful save
+        NotificationCenter.default.post(name: ClippingManager.didSaveClippingNotification, object: nil)
     }
     
     private func sanitizeFilename(_ filename: String) -> String {
+        // Trim whitespace first
+        let trimmed = filename.trimmingCharacters(in: .whitespacesAndNewlines)
+        
         // Remove or replace invalid characters
         let invalidCharacters = CharacterSet(charactersIn: ":/\\?%*|\"<>")
-        let sanitized = filename.components(separatedBy: invalidCharacters).joined(separator: "-")
+        let sanitized = trimmed.components(separatedBy: invalidCharacters).joined(separator: "-")
         
         // Limit length
         let maxLength = 50
@@ -132,7 +143,9 @@ class ClippingManager: ObservableObject {
             timeFormatter.dateFormat = "HH:mm"
             let timeString = timeFormatter.string(from: metadata.clippedAt)
             
-            let clippingRef = "\n- \(timeString) - [[\(clippingURL.lastPathComponent.replacingOccurrences(of: ".md", with: ""))]] - \(metadata.url)"
+            // Include the clippings folder in the link
+            let fileNameWithoutExtension = clippingURL.lastPathComponent.replacingOccurrences(of: ".md", with: "")
+            let clippingRef = "\n- \(timeString) - [[clippings/\(fileNameWithoutExtension)]] - \(metadata.url)"
             
             // Find the clippings section and add to it
             if let range = content.range(of: "## Clippings") {
