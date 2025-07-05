@@ -1,0 +1,9 @@
+{
+  "name": "com.octarine.clipper",
+  "description": "Octarine Web Clipper Native Host",
+  "path": "/Applications/OctarineMenubar.app/Contents/MacOS/OctarineMenubar",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://YOUR_EXTENSION_ID_HERE/"
+  ]
+}
