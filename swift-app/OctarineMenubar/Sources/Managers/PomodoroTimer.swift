@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import UserNotifications
 
 class PomodoroTimer: ObservableObject {
     @Published var timeRemaining: TimeInterval = 0
@@ -15,6 +16,15 @@ class PomodoroTimer: ObservableObject {
     
     init() {
         reset()
+        requestNotificationPermission()
+    }
+    
+    private func requestNotificationPermission() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, error in
+            if let error = error {
+                print("Notification permission error: \(error)")
+            }
+        }
     }
     
     func start() {
@@ -60,12 +70,17 @@ class PomodoroTimer: ObservableObject {
         pause()
         
         // Send notification
-        let notification = NSUserNotification()
-        notification.title = isWorkSession ? "Work session complete!" : "Break time over!"
-        notification.informativeText = isWorkSession ? "Time for a break." : "Ready to work?"
-        notification.soundName = NSUserNotificationDefaultSoundName
+        let content = UNMutableNotificationContent()
+        content.title = isWorkSession ? "Work session complete!" : "Break time over!"
+        content.body = isWorkSession ? "Time for a break." : "Ready to work?"
+        content.sound = .default
         
-        NSUserNotificationCenter.default.deliver(notification)
+        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("Notification error: \(error)")
+            }
+        }
         
         // Switch session type
         isWorkSession.toggle()

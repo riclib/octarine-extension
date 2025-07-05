@@ -3,9 +3,11 @@
 ## Prerequisites
 
 - macOS 11.0 or later
-- Xcode 13+ or Swift 5.5+
+- Xcode 13+ or Swift 5.5+ (beta versions required for beta macOS)
 - Google Chrome
 - Python 3 with PIL/Pillow (for icon generation)
+
+**Note**: If running beta versions of macOS, you'll need the corresponding beta version of Xcode or Swift toolchain.
 
 ## Project Setup
 
