@@ -10,6 +10,34 @@
 // Native messaging host name - must match the name in com.octarine.clipper.json
 const NATIVE_HOST = 'com.octarine.clipper';
 
+// DEBUG: Enhanced native messaging debugging
+const originalSendNativeMessage = chrome.runtime.sendNativeMessage;
+chrome.runtime.sendNativeMessage = function(application, message, responseCallback) {
+  console.log('🔍 [Native Message Debug]');
+  console.log('  Application:', application);
+  console.log('  Message preview:', JSON.stringify(message).substring(0, 200) + '...');
+  console.log('  Message size:', JSON.stringify(message).length, 'bytes');
+  
+  const startTime = Date.now();
+  
+  originalSendNativeMessage.call(chrome.runtime, application, message, function(response) {
+    const duration = Date.now() - startTime;
+    console.log('  Duration:', duration, 'ms');
+    
+    if (chrome.runtime.lastError) {
+      console.error('  ❌ Error object:', chrome.runtime.lastError);
+      console.error('  Error message:', chrome.runtime.lastError.message || 'No message');
+      console.error('  Full error:', JSON.stringify(chrome.runtime.lastError));
+    } else {
+      console.log('  ✅ Success! Response:', response);
+    }
+    
+    if (responseCallback) {
+      responseCallback(response);
+    }
+  });
+};
+
 /**
  * Listen for keyboard shortcuts defined in manifest.json
  * Currently handles: clip-page (Cmd+Shift+S)
@@ -88,9 +116,11 @@ async function handleClip() {
  * @returns {Promise<Object>} Success status and message/error
  */
 async function clipCurrentPage() {
+  console.log('[Octarine] Starting clipCurrentPage');
   try {
     // Get the active tab
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    console.log('[Octarine] Active tab:', tab?.url);
     
     // Try to send message to content script first
     try {
@@ -151,16 +181,43 @@ async function clipCurrentPage() {
  */
 function sendToNativeApp(data) {
   return new Promise((resolve) => {
+    console.log('Sending to native app:', {
+      host: NATIVE_HOST,
+      dataSize: JSON.stringify(data).length,
+      hasContent: !!data.content,
+      hasMetadata: !!data.metadata
+    });
+    
     // Send message to native host
     // The native app must be registered in NativeMessagingHosts directory
     chrome.runtime.sendNativeMessage(NATIVE_HOST, data, (response) => {
       if (chrome.runtime.lastError) {
-        console.error('Native messaging error:', chrome.runtime.lastError);
+        const errorMessage = chrome.runtime.lastError.message || 'Unknown error';
+        console.error('Native messaging error details:');
+        console.error('Error object:', chrome.runtime.lastError);
+        console.error('Error message:', errorMessage);
+        console.error('Host name:', NATIVE_HOST);
+        console.error('Full error:', JSON.stringify(chrome.runtime.lastError));
+        
+        // Check for specific error types
+        if (errorMessage.includes('not found') || errorMessage.includes('does not exist')) {
+          console.error('Host not found. Make sure the manifest is installed correctly.');
+        } else if (errorMessage.includes('access denied') || errorMessage.includes('forbidden')) {
+          console.error('Access denied. The app might need permission to run.');
+        }
+        
         resolve({ 
           success: false, 
-          error: chrome.runtime.lastError.message 
+          error: errorMessage 
+        });
+      } else if (!response) {
+        console.error('No response from native app');
+        resolve({ 
+          success: false, 
+          error: 'No response from native app' 
         });
       } else {
+        console.log('Native app response:', response);
         resolve({ 
           success: true, 
           message: response?.message || 'Page clipped successfully' 

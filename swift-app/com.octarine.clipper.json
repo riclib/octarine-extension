@@ -4,6 +4,6 @@
   "path": "/Applications/OctarineMenubar.app/Contents/MacOS/OctarineMenubar",
   "type": "stdio",
   "allowed_origins": [
-    "chrome-extension://abcdefghijklmnopqrstuvwxyz123456/"
+    "chrome-extension://YOUR_EXTENSION_ID_HERE/"
   ]
 }

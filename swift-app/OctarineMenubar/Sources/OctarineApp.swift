@@ -4,10 +4,30 @@ import SwiftUI
 struct OctarineApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
+    init() {
+        // Check if we're being run for native messaging
+        // Chrome passes the extension origin as the first argument
+        let args = CommandLine.arguments
+        if args.count > 1 && args[1].starts(with: "chrome-extension://") {
+            // Run in native messaging mode
+            runNativeMessagingMode()
+            exit(0)
+        }
+    }
+    
     var body: some Scene {
         Settings {
             EmptyView()
         }
+    }
+    
+    func runNativeMessagingMode() {
+        // Create a minimal clipping manager for native messaging
+        let clippingManager = ClippingManager()
+        let host = NativeMessagingHost(clippingManager: clippingManager)
+        
+        // Run the native messaging loop synchronously
+        host.runSynchronously()
     }
 }
 

@@ -1,7 +1,12 @@
 // Listen for messages from background script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  console.log('[Octarine Content] Received message:', request);
   if (request.action === 'extractContent') {
-    extractPageContent().then(sendResponse);
+    console.log('[Octarine Content] Extracting content...');
+    extractPageContent().then(result => {
+      console.log('[Octarine Content] Extraction result:', result);
+      sendResponse(result);
+    });
     return true; // Will respond asynchronously
   }
 });

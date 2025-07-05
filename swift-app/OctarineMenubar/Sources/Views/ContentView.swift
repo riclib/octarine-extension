@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct ContentView: View {
     @ObservedObject var clippingManager: ClippingManager
@@ -85,11 +86,40 @@ struct PomodoroView: View {
 
 struct ClippingsView: View {
     @ObservedObject var clippingManager: ClippingManager
+    @State private var showingFolderPicker = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Recent Clippings")
                 .font(.headline)
+                .padding(.horizontal)
+            
+            // Folder selector
+            HStack {
+                Text("Folder:")
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+                
+                Text(clippingManager.baseURL.path)
+                    .font(.system(size: 11))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                
+                Spacer()
+                
+                Button(action: {
+                    showingFolderPicker = true
+                }) {
+                    Text("Change")
+                        .font(.system(size: 11))
+                }
+                .buttonStyle(PlainButtonStyle())
+                .foregroundColor(.blue)
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 5)
+            
+            Divider()
                 .padding(.horizontal)
             
             ScrollView {
@@ -104,6 +134,18 @@ struct ClippingsView: View {
             Spacer()
         }
         .padding(.vertical)
+        .fileImporter(
+            isPresented: $showingFolderPicker,
+            allowedContentTypes: [.folder],
+            onCompletion: { result in
+                switch result {
+                case .success(let url):
+                    clippingManager.updateBaseFolder(url)
+                case .failure(let error):
+                    print("Error selecting folder: \(error)")
+                }
+            }
+        )
     }
 }
 

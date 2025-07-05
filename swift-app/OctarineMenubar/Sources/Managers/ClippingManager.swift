@@ -2,21 +2,54 @@ import Foundation
 
 class ClippingManager: ObservableObject {
     @Published var recentClippings: [URL] = []
+    @Published private(set) var baseURL: URL
     
     private let fileManager = FileManager.default
-    private let baseURL: URL
-    private let clippingsURL: URL
-    private let dailyNotesURL: URL
+    private var clippingsURL: URL
+    private var dailyNotesURL: URL
     
     init() {
-        // Get the user's Documents directory
-        let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
-        baseURL = documentsURL.appendingPathComponent("Octarine")
-        clippingsURL = baseURL.appendingPathComponent("clippings")
-        dailyNotesURL = baseURL.appendingPathComponent("daily")
+        // Load saved path from UserDefaults
+        let tempBaseURL: URL
+        if let savedPath = UserDefaults.standard.string(forKey: "OctarineBasePath"),
+           let savedURL = URL(string: savedPath),
+           fileManager.fileExists(atPath: savedURL.path) {
+            tempBaseURL = savedURL
+        } else {
+            // Check for existing Octarine folder in home directory first
+            let homeURL = fileManager.homeDirectoryForCurrentUser
+            let homeOctarineURL = homeURL.appendingPathComponent("Octarine")
+            
+            // Use ~/Octarine if it exists, otherwise ~/Documents/Octarine
+            if fileManager.fileExists(atPath: homeOctarineURL.path) {
+                tempBaseURL = homeOctarineURL
+            } else {
+                let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+                tempBaseURL = documentsURL.appendingPathComponent("Octarine")
+            }
+        }
+        
+        // Set baseURL
+        self.baseURL = tempBaseURL
+        
+        // Check for capitalized Daily folder
+        let capitalDailyURL = tempBaseURL.appendingPathComponent("Daily")
+        if fileManager.fileExists(atPath: capitalDailyURL.path) {
+            self.dailyNotesURL = capitalDailyURL
+        } else {
+            self.dailyNotesURL = tempBaseURL.appendingPathComponent("daily")
+        }
+        
+        self.clippingsURL = tempBaseURL.appendingPathComponent("clippings")
         
         // Create directories if they don't exist
         createDirectoriesIfNeeded()
+        
+        // Log paths for debugging
+        print("[ClippingManager] Using paths:")
+        print("  Base: \(baseURL.path)")
+        print("  Clippings: \(clippingsURL.path)")
+        print("  Daily Notes: \(dailyNotesURL.path)")
         
         // Load recent clippings
         loadRecentClippings()
@@ -133,5 +166,32 @@ class ClippingManager: ObservableObject {
         } catch {
             print("Failed to load recent clippings: \(error)")
         }
+    }
+    
+    func updateBaseFolder(_ newURL: URL) {
+        // Save the new path
+        UserDefaults.standard.set(newURL.absoluteString, forKey: "OctarineBasePath")
+        
+        // Update properties
+        baseURL = newURL
+        
+        // Check for capitalized Daily folder in new location
+        let capitalDailyURL = baseURL.appendingPathComponent("Daily")
+        if fileManager.fileExists(atPath: capitalDailyURL.path) {
+            dailyNotesURL = capitalDailyURL
+        } else {
+            dailyNotesURL = baseURL.appendingPathComponent("daily")
+        }
+        
+        clippingsURL = baseURL.appendingPathComponent("clippings")
+        
+        // Create directories if needed
+        createDirectoriesIfNeeded()
+        
+        // Log the change
+        print("[ClippingManager] Updated base folder to: \(baseURL.path)")
+        
+        // Reload clippings from new location
+        loadRecentClippings()
     }
 }
