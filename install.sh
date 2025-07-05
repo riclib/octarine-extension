@@ -10,10 +10,26 @@ echo "🐙 Octarine Extension Installer"
 echo "=============================="
 echo ""
 
-# Check if Chrome is installed
-if [ ! -d "/Applications/Google Chrome.app" ]; then
-    echo -e "${RED}Error: Google Chrome is not installed${NC}"
-    exit 1
+# Check for compatible browsers
+BROWSER_FOUND=false
+NATIVE_HOST_DIR=""
+
+if [ -d "/Applications/Google Chrome.app" ]; then
+    BROWSER_FOUND=true
+    NATIVE_HOST_DIR="$HOME/Library/Application Support/Google/Chrome/NativeMessagingHosts"
+    echo -e "${GREEN}✓ Google Chrome found${NC}"
+elif [ -d "/Applications/Arc.app" ]; then
+    BROWSER_FOUND=true
+    NATIVE_HOST_DIR="$HOME/Library/Application Support/Arc/User Data/NativeMessagingHosts"
+    echo -e "${GREEN}✓ Arc browser found${NC}"
+fi
+
+if [ "$BROWSER_FOUND" = false ]; then
+    echo -e "${YELLOW}Warning: No compatible browser found${NC}"
+    echo "You'll need Chrome or Arc to use the extension, but we can continue with the Swift app installation."
+    echo ""
+    # Use Chrome's directory as default
+    NATIVE_HOST_DIR="$HOME/Library/Application Support/Google/Chrome/NativeMessagingHosts"
 fi
 
 # Get the extension ID (this will be shown after loading the unpacked extension)
@@ -29,7 +45,6 @@ MANIFEST_PATH="swift-app/com.octarine.clipper.json"
 sed -i '' "s/YOUR_EXTENSION_ID_HERE/$EXTENSION_ID/g" "$MANIFEST_PATH"
 
 # Create native messaging host directory
-NATIVE_HOST_DIR="$HOME/Library/Application Support/Google/Chrome/NativeMessagingHosts"
 mkdir -p "$NATIVE_HOST_DIR"
 
 # Copy the manifest

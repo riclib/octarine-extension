@@ -16,20 +16,65 @@ const NATIVE_HOST = 'com.octarine.clipper';
  */
 chrome.commands.onCommand.addListener((command) => {
   if (command === 'clip-page') {
-    clipCurrentPage();
+    handleClip();
   }
 });
 
 /**
- * Listen for messages from popup or content scripts
- * Handles async responses by returning true
+ * Listen for clicks on the extension icon
  */
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'clip') {
-    clipCurrentPage().then(sendResponse);
-    return true; // Will respond asynchronously
-  }
+chrome.action.onClicked.addListener((tab) => {
+  handleClip();
 });
+
+/**
+ * Handle the clipping process with visual feedback
+ */
+async function handleClip() {
+  // Show "working" badge
+  chrome.action.setBadgeText({ text: '...' });
+  chrome.action.setBadgeBackgroundColor({ color: '#4285f4' });
+  
+  try {
+    const result = await clipCurrentPage();
+    
+    if (result.success) {
+      // Success feedback
+      chrome.action.setBadgeText({ text: '✓' });
+      chrome.action.setBadgeBackgroundColor({ color: '#0f9d58' });
+      
+      // Clear badge after 2 seconds
+      setTimeout(() => {
+        chrome.action.setBadgeText({ text: '' });
+      }, 2000);
+    } else {
+      // Error feedback
+      chrome.action.setBadgeText({ text: '!' });
+      chrome.action.setBadgeBackgroundColor({ color: '#ea4335' });
+      
+      // Show error notification
+      chrome.notifications.create({
+        type: 'basic',
+        iconUrl: 'images/icon48.png',
+        title: 'Clipping Failed',
+        message: result.error || 'Unknown error occurred'
+      });
+      
+      // Clear badge after 3 seconds
+      setTimeout(() => {
+        chrome.action.setBadgeText({ text: '' });
+      }, 3000);
+    }
+  } catch (error) {
+    console.error('Clip error:', error);
+    chrome.action.setBadgeText({ text: '!' });
+    chrome.action.setBadgeBackgroundColor({ color: '#ea4335' });
+    
+    setTimeout(() => {
+      chrome.action.setBadgeText({ text: '' });
+    }, 3000);
+  }
+}
 
 /**
  * Main function to clip the current active tab
@@ -47,22 +92,45 @@ async function clipCurrentPage() {
     // Get the active tab
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     
-    // Inject content script if not already injected
-    // This ensures our scripts are available even on pages loaded before extension
-    await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      files: ['lib/Readability.js', 'lib/turndown.js', 'js/content.js']
-    });
-    
-    // Send message to content script to extract content
-    const response = await chrome.tabs.sendMessage(tab.id, { action: 'extractContent' });
-    
-    if (response.error) {
-      return { success: false, error: response.error };
+    // Try to send message to content script first
+    try {
+      const response = await chrome.tabs.sendMessage(tab.id, { action: 'extractContent' });
+      
+      if (response.error) {
+        return { success: false, error: response.error };
+      }
+      
+      // Send to native app
+      return sendToNativeApp(response.data);
+    } catch (messageError) {
+      // Content script not loaded, inject it
+      console.log('Content script not loaded, injecting...');
+      
+      // Check if scripting API is available
+      if (!chrome.scripting) {
+        console.error('Scripting API not available. Please reload the extension.');
+        return { success: false, error: 'Scripting API not available. Please reload the extension in chrome://extensions' };
+      }
+      
+      // Inject content script
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ['lib/Readability.js', 'lib/turndown.js', 'js/content.js']
+      });
+      
+      // Wait a bit for scripts to load
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Try again
+      const response = await chrome.tabs.sendMessage(tab.id, { action: 'extractContent' });
+      
+      if (response.error) {
+        return { success: false, error: response.error };
+      }
+      
+      // Send to native app
+      return sendToNativeApp(response.data);
     }
-    
-    // Send to native app
-    return sendToNativeApp(response.data);
   } catch (error) {
     console.error('Error clipping page:', error);
     return { success: false, error: error.message };

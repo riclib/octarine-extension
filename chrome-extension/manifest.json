@@ -5,8 +5,10 @@
   "description": "Clip web pages as markdown to your Octarine notes",
   "permissions": [
     "activeTab",
+    "scripting",
     "storage",
-    "nativeMessaging"
+    "nativeMessaging",
+    "notifications"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -15,7 +17,6 @@
     "service_worker": "js/background.js"
   },
   "action": {
-    "default_popup": "popup.html",
     "default_icon": {
       "16": "images/icon16.png",
       "48": "images/icon48.png",
