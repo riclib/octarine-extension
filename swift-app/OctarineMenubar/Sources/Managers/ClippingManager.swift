@@ -109,12 +109,23 @@ class ClippingManager: ObservableObject {
         
         // Limit length
         let maxLength = 50
-        if sanitized.count > maxLength {
-            let index = sanitized.index(sanitized.startIndex, offsetBy: maxLength)
-            return String(sanitized[..<index])
+        var result = sanitized
+        if result.count > maxLength {
+            let index = result.index(result.startIndex, offsetBy: maxLength)
+            result = String(result[..<index])
         }
         
-        return sanitized
+        // Trim trailing non-alphanumeric characters (spaces, hyphens, etc.)
+        while !result.isEmpty && !result.last!.isLetter && !result.last!.isNumber {
+            result.removeLast()
+        }
+        
+        // Ensure we have at least some content
+        if result.isEmpty {
+            result = "untitled"
+        }
+        
+        return result
     }
     
     private func addToDailyNote(clippingURL: URL, metadata: ClipMetadata) {
