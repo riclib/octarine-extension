@@ -114,3 +114,13 @@ This is a two-component system that clips web pages to local markdown files:
 - **No clippings saved**: Check if Swift app is running and has write permissions
 - **Multiple app instances**: Kill all with `pkill OctarineMenubar` and restart
 - **Content extraction fails**: Some dynamic sites need manual text selection
+
+## Development Guidelines
+
+### Changelog Updates
+Before pushing changes to the repository:
+1. Review all commits that will be pushed using `git log origin/main..HEAD`
+2. Update CHANGELOG.md to reflect all changes made in the current session
+3. Group changes appropriately under Added, Changed, Fixed, etc.
+4. Include the context and reasoning for changes when relevant
+5. Maintain the existing changelog format and structure
