@@ -1,22 +1,66 @@
 # Octarine Extension User Guide
 
+## Table of Contents
+1. [Installation](#installation)
+2. [Usage](#usage)
+3. [Features](#features)
+4. [Tips & Tricks](#tips--tricks)
+5. [Troubleshooting](#troubleshooting)
+
 ## Installation
 
-### Quick Install
+### Prerequisites Check
 
-1. Run the installation script:
-   ```bash
-   ./install.sh
-   ```
+Before installing, ensure you have:
+- ✅ macOS 11.0 or later
+- ✅ Google Chrome installed
+- ✅ Swift (run `swift --version` to check)
+- ✅ Git (run `git --version` to check)
 
-2. When prompted, enter your Chrome extension ID (found in chrome://extensions after loading the extension)
+If you need Swift:
+```bash
+xcode-select --install
+```
 
-3. The installer will:
-   - Build the Swift menubar app
-   - Install it to `/Applications/OctarineMenubar.app`
-   - Configure native messaging
+### Step-by-Step Installation
 
-**Note**: The app uses a single-instance architecture. If Chrome launches it for clipping, it will stay running as a menubar app afterwards. This ensures consistent behavior and prevents multiple instances.
+⚠️ **Important**: Follow these steps IN ORDER. Loading the extension before running the installer is crucial!
+
+#### Step 1: Get the Code
+```bash
+git clone https://github.com/riclib/octarine-extension.git
+cd octarine-extension
+chmod +x install.sh
+```
+
+#### Step 2: Load the Chrome Extension
+1. Open Chrome
+2. Navigate to `chrome://extensions`
+3. Enable "Developer mode" (toggle in top right corner)
+4. Click "Load unpacked"
+5. Browse to and select the `chrome-extension` folder
+6. **IMPORTANT**: Copy the Extension ID that appears on the extension card
+   
+   Example ID: `ccpoplhmbhhjaileoijblcocnhonmmch`
+
+#### Step 3: Run the Installer
+```bash
+./install.sh
+```
+
+When prompted:
+- Paste the Extension ID you copied
+- Wait for the build to complete (may take 1-2 minutes)
+- The installer will:
+  - Build the Swift menubar app
+  - Install it to `/Applications/OctarineMenubar.app`
+  - Configure native messaging with your extension ID
+
+#### Step 4: Verify Installation
+1. Look for the Octarine icon (📄) in your menubar
+2. If not visible, manually start: `open /Applications/OctarineMenubar.app`
+3. Test clipping with `Cmd+Shift+S` on any webpage
+4. Check for the success badge (✓) on the extension icon
 
 ### Manual Installation
 
@@ -173,18 +217,36 @@ The extension automatically extracts:
 3. **Use with Obsidian**: The markdown format and wiki-links work great with Obsidian
 4. **Keyboard Shortcuts**: Cmd+Shift+S is fastest for frequent clipping
 
-### Troubleshooting
+### Troubleshooting Quick Fixes
 
 #### Extension Not Working
 
-1. Check if the menubar app is running (look for the icon in your menubar)
-2. If multiple instances might be running, quit all and restart:
-   ```bash
-   pkill OctarineMenubar
-   open /Applications/OctarineMenubar.app
-   ```
-3. Verify extension has necessary permissions
-4. Try reloading the extension in chrome://extensions
+**Symptom**: Nothing happens when pressing Cmd+Shift+S or clicking the extension icon
+
+**Quick Fix**:
+```bash
+# 1. Kill any existing instances
+pkill OctarineMenubar
+
+# 2. Check your extension ID
+# Go to chrome://extensions and copy your extension ID
+
+# 3. Re-run the installer with the correct ID
+./install.sh
+
+# 4. Manually start the app
+open /Applications/OctarineMenubar.app
+```
+
+#### "Access to native messaging host forbidden"
+
+This is the most common issue. It means the Extension ID doesn't match.
+
+**Solution**:
+1. Get your current extension ID from `chrome://extensions`
+2. Edit the manifest: `~/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.octarine.clipper.json`
+3. Update the `allowed_origins` line with your ID
+4. Restart Chrome completely (Cmd+Q)
 
 #### Clippings Not Saving
 

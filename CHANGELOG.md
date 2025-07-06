@@ -21,6 +21,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Recent clippings view
 - Installation script
 - Comprehensive documentation
+- Badge notifications on extension icon (✓ for success, ! for error)
+- Quit button in menubar app UI
+- QUICK_START.md for rapid setup
+- Enhanced error handling in install.sh
+
+### Changed
+- Improved UX: Badge notifications instead of popup window
+- Extension now clips directly on icon click (no popup needed)
+- Rolled back single-instance architecture for simpler behavior
+- Chrome-launched instances exit after clipping (lightweight approach)
+- Daily note links now include `clippings/` folder prefix
+- Enhanced documentation with clearer installation instructions
+- Install script now validates prerequisites and Extension ID format
+
+### Fixed
+- Title trimming to remove extra whitespace
+- App persistence issues when launched by Chrome
+- Extension ID handling in native messaging manifest
+- Installation order documentation (extension must be loaded first)
 
 ### Technical Details
 - Chrome Extension:

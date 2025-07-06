@@ -9,12 +9,71 @@ A Chrome extension paired with a macOS menubar app for clipping web pages as mar
 - 📝 **Daily Notes Integration**: References automatically added to daily notes
 - 🍅 **Pomodoro Timer**: Built-in timer in the menubar app for focused work sessions
 - ⌨️ **Keyboard Shortcuts**: Quick clip with Cmd+Shift+S
+- 🔔 **Badge Notifications**: Visual feedback on the extension icon
+
+## Prerequisites
+
+- macOS 11.0 or later
+- Google Chrome
+- Swift 5.5+ (comes with Xcode or Command Line Tools)
+- Git
+
+### Installing Swift (if needed)
+```bash
+# Option 1: Install Xcode Command Line Tools (smaller download)
+xcode-select --install
+
+# Option 2: Install Xcode from the App Store (full IDE)
+```
 
 ## Quick Start
 
-1. Clone this repository
-2. Run the installation script: `./install.sh`
-3. Follow the prompts to complete setup
+📚 **[Jump to 5-minute Quick Start Guide](QUICK_START.md)** for the fastest setup!
+
+### Full Installation Steps
+
+1. **Clone this repository**
+   ```bash
+   git clone https://github.com/riclib/octarine-extension.git
+   cd octarine-extension
+   chmod +x install.sh
+   ```
+
+2. **Load the Chrome extension FIRST**
+   - Open Chrome and go to `chrome://extensions`
+   - Enable "Developer mode" (toggle in top right)
+   - Click "Load unpacked"
+   - Select the `chrome-extension` folder from this project
+   - **Copy the Extension ID** shown on the extension card (you'll need this!)
+
+3. **Run the installer**
+   ```bash
+   ./install.sh
+   ```
+   - Paste the Extension ID when prompted
+   - The installer will build and set up everything
+
+4. **Start using Octarine**
+   - The menubar app icon should appear in your Mac's menu bar
+   - Press `Cmd+Shift+S` on any webpage to clip it
+   - Or click the extension icon in Chrome
+
+## Verification
+
+After installation, verify everything is working:
+1. Look for the Octarine icon in your menubar (document icon)
+2. Try clipping a webpage with `Cmd+Shift+S`
+3. Check `~/Documents/Octarine/clippings/` for the saved file
+4. Click the menubar icon to see recent clippings
+
+## Important Notes
+
+⚠️ **Extension ID Changes**: If you remove and reload the extension in Chrome, it gets a new ID. You'll need to run the installer again with the new ID.
+
+📁 **File Locations**: 
+- Clippings: `~/Documents/Octarine/clippings/`
+- Daily notes: `~/Documents/Octarine/daily/`
+- App: `/Applications/OctarineMenubar.app`
 
 ## Documentation
 
@@ -79,6 +138,28 @@ clipped_at: 2025-01-05T14:32:00Z
 
 [Article content in markdown...]
 ```
+
+## Troubleshooting
+
+### Common Issues
+
+**"Access to native messaging host forbidden"**
+- Make sure you used the correct Extension ID from Chrome
+- Try quitting Chrome completely and restarting
+- Re-run the installer with the correct ID
+
+**No menubar icon appears**
+- Check if the app is already running: `ps aux | grep OctarineMenubar`
+- Try launching manually: `open /Applications/OctarineMenubar.app`
+- Check Console.app for error messages
+
+**Clipping doesn't work**
+- Verify the extension icon shows in Chrome's toolbar
+- Check that the menubar app is running
+- Try the keyboard shortcut `Cmd+Shift+S`
+- Look for badge notifications on the extension icon
+
+For more help, see the [Troubleshooting Guide](docs/TROUBLESHOOTING.md).
 
 ## Development
 
