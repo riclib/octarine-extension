@@ -96,20 +96,14 @@ class ClippingManager: ObservableObject {
         addToDailyNote(clippingURL: fileURL, metadata: metadata)
         
         // Post notification for successful save
-        let timestamp = DateFormatter.localizedString(from: Date(), dateStyle: .none, timeStyle: .medium)
-        print("[ClippingManager] [\(timestamp)] Posting notifications (PID: \(ProcessInfo.processInfo.processIdentifier))")
-        
         // Local notification for in-app updates
         NotificationCenter.default.post(name: ClippingManager.didSaveClippingNotification, object: nil)
-        print("[ClippingManager] [\(timestamp)] Posted local notification")
         
         // Distributed notification for cross-process updates (when Chrome extension saves)
         DistributedNotificationCenter.default().post(
             name: NSNotification.Name("com.octarine.clipping.saved"),
-            object: nil,
-            userInfo: ["timestamp": timestamp]
+            object: nil
         )
-        print("[ClippingManager] [\(timestamp)] Posted distributed notification")
     }
     
     private func sanitizeFilename(_ filename: String) -> String {
@@ -184,10 +178,6 @@ class ClippingManager: ObservableObject {
     }
     
     func loadRecentClippings() {
-        let timestamp = DateFormatter.localizedString(from: Date(), dateStyle: .none, timeStyle: .medium)
-        print("[ClippingManager] [\(timestamp)] Loading recent clippings (PID: \(ProcessInfo.processInfo.processIdentifier))")
-        print("[ClippingManager] [\(timestamp)] Previous count: \(recentClippings.count)")
-        
         do {
             let files = try fileManager.contentsOfDirectory(
                 at: clippingsURL,
@@ -204,9 +194,8 @@ class ClippingManager: ObservableObject {
                 }
             
             recentClippings = Array(sortedFiles.prefix(10))
-            print("[ClippingManager] [\(timestamp)] Loaded \(recentClippings.count) clippings")
         } catch {
-            print("[ClippingManager] [\(timestamp)] Failed to load recent clippings: \(error)")
+            print("Failed to load recent clippings: \(error)")
         }
     }
     

@@ -13,8 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Visual feedback (checkmark) shows for all successful clippings
 - Filename sanitization now removes trailing non-alphanumeric characters, preventing broken markdown links in daily notes
 
-### Added
-- Debug logging for notification system (temporary, will be removed before release)
+### Removed
+- Debug logging for notification system (no longer needed)
 
 ## [1.0.0] - 2025-01-06
 
