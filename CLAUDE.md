@@ -58,16 +58,18 @@ fswatch ~/Documents/Octarine/clippings/
 This is a two-component system that clips web pages to local markdown files:
 
 1. **Chrome Extension** (Manifest V3)
-   - `background.js`: Service worker handling keyboard shortcuts and native messaging
+   - `background.js`: Service worker handling keyboard shortcuts, native messaging, and badge notifications
    - `content.js`: Extracts page content using Readability.js and converts to markdown with Turndown.js
-   - `popup.js`: Simple UI for manual clipping
+   - Badge notifications: Shows `...` while processing, `✓` on success, `!` on error
    - Communicates with Swift app via Chrome Native Messaging API
 
 2. **Swift Menubar App**
-   - `NativeMessagingHost.swift`: Reads messages from stdin (4-byte length header + JSON)
+   - `OctarineApp.swift`: Single-instance architecture with distributed notifications for IPC
+   - `NativeMessagingHost.swift`: Reads messages from stdin, stays resident after Chrome disconnects
    - `ClippingManager.swift`: Saves files to `~/Documents/Octarine/clippings/` with YAML frontmatter
    - `PomodoroTimer.swift`: Additional productivity timer feature
    - Updates daily notes in `~/Documents/Octarine/daily/`
+   - UI includes quit button (X icon) in top-right corner
 
 ### Data Flow
 1. User presses Cmd+Shift+S or clicks extension icon
@@ -99,13 +101,16 @@ This is a two-component system that clips web pages to local markdown files:
 
 - **Extension ID**: Must be manually configured in `com.octarine.clipper.json` after loading extension
 - **Native Messaging**: Uses stdin/stdout with 4-byte little-endian length header
+- **Single Instance**: App forwards messages via distributed notifications if already running
 - **Content Extraction**: Readability.js for article extraction, custom Turndown rules for markdown
 - **Metadata Sources**: Meta tags, Open Graph, JSON-LD, with fallbacks
 - **File Sanitization**: Removes `:/?%*|"<>\` from filenames, replaces with `-`
+- **Success Indicator**: Menubar icon shows checkmark for 2 seconds after successful clip
 - **Error Handling**: Native messaging errors are common - check Console.app and extension ID
 
 ## Common Issues
 
-- **"Native host has exited"**: Usually wrong extension ID in manifest or app not found
+- **"Native host has exited"**: Less common now (app stays resident), but check extension ID in manifest
 - **No clippings saved**: Check if Swift app is running and has write permissions
+- **Multiple app instances**: Kill all with `pkill OctarineMenubar` and restart
 - **Content extraction fails**: Some dynamic sites need manual text selection

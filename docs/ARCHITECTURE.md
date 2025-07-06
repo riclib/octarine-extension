@@ -6,7 +6,7 @@ The Octarine Extension is a two-part system consisting of:
 1. A Chrome extension for web content extraction
 2. A macOS menubar app for file management and productivity features
 
-Communication between the two components uses Chrome's Native Messaging API.
+Communication between the two components uses Chrome's Native Messaging API. The app uses a single-instance architecture with distributed notifications for inter-process communication.
 
 ## System Flow
 
@@ -27,6 +27,10 @@ Communication between the two components uses Chrome's Native Messaging API.
 │ (~/Documents/   │     │ (Swift)          │     │ Host (Swift)    │
 │  Octarine/)     │     │                  │     │                 │
 └─────────────────┘     └──────────────────┘     └─────────────────┘
+
+Note: The Swift app implements single-instance architecture. When Chrome launches
+the app, if an instance is already running, the new instance forwards the message
+via distributed notifications and exits.
 ```
 
 ## Component Details
@@ -43,6 +47,10 @@ Communication between the two components uses Chrome's Native Messaging API.
 - Handles keyboard shortcuts (Cmd+Shift+S)
 - Manages communication with content script
 - Sends messages to native host
+- Shows badge notifications on extension icon:
+  - `...` while processing
+  - `✓` on success
+  - `!` on error
 - Error handling and retry logic
 
 #### Content Script (js/content.js)
@@ -64,7 +72,7 @@ Communication between the two components uses Chrome's Native Messaging API.
 ```
 OctarineMenubar/
 ├── Sources/
-│   ├── OctarineApp.swift      # Main app entry point
+│   ├── OctarineApp.swift      # Main app entry point, single-instance logic
 │   ├── Models/
 │   │   └── ClipMetadata.swift # Data model for clippings
 │   ├── Managers/
@@ -82,7 +90,15 @@ OctarineMenubar/
 - Reads messages from stdin
 - Parses Chrome's message format (4-byte length header + JSON)
 - Sends responses back via stdout
+- Returns gracefully when Chrome disconnects (app stays resident)
 - Error handling for malformed messages
+
+**OctarineApp.swift**
+- Implements single-instance architecture
+- First instance becomes the menubar app
+- Subsequent instances forward messages via distributed notifications
+- Shows success indicator (checkmark icon) for 2 seconds after clipping
+- Includes quit button (X icon) in popover UI
 
 **ClippingManager.swift**
 - Creates directory structure on first run
@@ -160,8 +176,8 @@ excerpt: "Article summary..."
 Meeting notes here...
 
 ## Clippings
-- 14:32 - [[2025-01-05 14:32 Article Title]] - https://example.com
-- 16:45 - [[2025-01-05 16:45 Another Article]] - https://example.org
+- 14:32 - [[clippings/2025-01-05 14:32 Article Title]] - https://example.com
+- 16:45 - [[clippings/2025-01-05 16:45 Another Article]] - https://example.org
 ```
 
 ## Security Considerations
@@ -176,12 +192,13 @@ Meeting notes here...
 ### Chrome Extension
 - Graceful fallback if Readability fails
 - Timeout handling for native messaging
-- User-friendly error messages in popup
+- Badge notifications for user feedback (no popup required)
 
 ### Swift App
 - Directory creation with error recovery
 - File write error handling
 - Malformed message rejection
+- Single-instance conflict handling
 - Logging to Console.app for debugging
 
 ## Performance Considerations
@@ -190,3 +207,4 @@ Meeting notes here...
 2. **Efficient IPC**: Binary message format for native messaging
 3. **Background Processing**: File operations on background queue
 4. **Memory Management**: Proper cleanup of resources
+5. **Single Instance**: Reduces resource usage by preventing duplicate processes

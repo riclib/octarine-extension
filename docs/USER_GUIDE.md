@@ -16,6 +16,8 @@
    - Install it to `/Applications/OctarineMenubar.app`
    - Configure native messaging
 
+**Note**: The app uses a single-instance architecture. If Chrome launches it for clipping, it will stay running as a menubar app afterwards. This ensures consistent behavior and prevents multiple instances.
+
 ### Manual Installation
 
 #### Chrome Extension
@@ -55,8 +57,13 @@
 Press **Cmd+Shift+S** on any webpage to clip it instantly.
 
 #### Method 2: Extension Icon
-1. Click the Octarine extension icon in Chrome toolbar
-2. Click "Clip Page" button
+Click the Octarine extension icon in Chrome toolbar to clip instantly.
+
+#### Visual Feedback
+The extension icon shows badge notifications:
+- `...` badge while processing
+- `✓` badge when successfully clipped
+- `!` badge if an error occurs
 
 #### What Gets Saved
 
@@ -69,6 +76,10 @@ Each clipping includes:
 ### Using the Menubar App
 
 Click the Octarine icon in your Mac's menubar to access:
+
+**Note**: When a clipping is saved successfully, the menubar icon briefly changes to a checkmark for 2 seconds as visual confirmation.
+
+To quit the app, click the X button in the top-right corner of the popover.
 
 #### Timer Tab
 - **Pomodoro Timer**: 25-minute work sessions, 5-minute breaks
@@ -87,7 +98,7 @@ Clippings are automatically referenced in your daily notes:
 1. Daily notes are stored in `~/Documents/Octarine/daily/`
 2. Format: `YYYY-MM-DD.md`
 3. Clippings added to "## Clippings" section
-4. Format: `- HH:MM - [[Clipping Name]] - URL`
+4. Format: `- HH:MM - [[clippings/Clipping Name]] - URL`
 
 Example daily note:
 ```markdown
@@ -101,8 +112,8 @@ Example daily note:
 Team meeting at 2pm about new feature
 
 ## Clippings
-- 10:30 - [[2025-01-05 10:30 React Best Practices]] - https://example.com/react
-- 14:32 - [[2025-01-05 14:32 Swift Concurrency Guide]] - https://swift.org/guide
+- 10:30 - [[clippings/2025-01-05 10:30 React Best Practices]] - https://example.com/react
+- 14:32 - [[clippings/2025-01-05 14:32 Swift Concurrency Guide]] - https://swift.org/guide
 ```
 
 ### File Organization
@@ -166,9 +177,14 @@ The extension automatically extracts:
 
 #### Extension Not Working
 
-1. Check if the menubar app is running
-2. Verify extension has necessary permissions
-3. Try reloading the extension in chrome://extensions
+1. Check if the menubar app is running (look for the icon in your menubar)
+2. If multiple instances might be running, quit all and restart:
+   ```bash
+   pkill OctarineMenubar
+   open /Applications/OctarineMenubar.app
+   ```
+3. Verify extension has necessary permissions
+4. Try reloading the extension in chrome://extensions
 
 #### Clippings Not Saving
 
@@ -217,7 +233,8 @@ Create shortcuts or scripts to:
 | Action | Shortcut |
 |--------|----------|
 | Clip current page | Cmd+Shift+S |
-| Open extension popup | Click extension icon |
+| Clip current page (alt) | Click extension icon |
+| Quit menubar app | Click X in popover |
 | Start/pause timer | Click play button |
 | Reset timer | Click reset button |
 | Skip session | Click forward button |

@@ -4,6 +4,16 @@
 
 ### Chrome Extension Issues
 
+#### Badge Notifications Not Showing
+
+**Symptoms**: No visual feedback when clipping (no `...`, `✓`, or `!` badges)
+
+**Solutions**:
+1. Check if extension icon is visible in toolbar
+2. Reload extension in chrome://extensions
+3. Check browser console for errors
+4. Ensure extension has proper permissions
+
 #### Extension Not Loading
 
 **Symptoms**: Extension doesn't appear in Chrome toolbar
@@ -49,13 +59,37 @@
 **Symptoms**: Menubar icon doesn't appear
 
 **Solutions**:
-1. Check if app is in Applications folder
-2. Verify macOS version (11.0+)
-3. Look for crash logs in Console.app
-4. Try running from Terminal:
+1. Check if app is already running:
+   ```bash
+   ps aux | grep OctarineMenubar
+   ```
+2. Kill any existing instances:
+   ```bash
+   pkill OctarineMenubar
+   ```
+3. Check if app is in Applications folder
+4. Verify macOS version (11.0+)
+5. Look for crash logs in Console.app
+6. Try running from Terminal:
    ```bash
    /Applications/OctarineMenubar.app/Contents/MacOS/OctarineMenubar
    ```
+
+#### Multiple App Instances
+
+**Symptoms**: Changes not reflecting in UI, multiple menubar icons
+
+**Solutions**:
+1. Check for duplicate processes:
+   ```bash
+   ps aux | grep OctarineMenubar | grep -v grep
+   ```
+2. Kill all instances and restart:
+   ```bash
+   pkill OctarineMenubar
+   open /Applications/OctarineMenubar.app
+   ```
+3. The app uses single-instance architecture, so this should be rare
 
 #### Files Not Saving
 
@@ -77,7 +111,7 @@
 
 #### "Native host has exited" Error
 
-**Symptoms**: Chrome shows native host error
+**Symptoms**: Chrome shows native host error (less common now due to app persistence)
 
 **Solutions**:
 1. Verify manifest path:
@@ -154,6 +188,12 @@
    print("Content length: \(content.count)")
    ```
 
+4. **Monitor Distributed Notifications**:
+   ```bash
+   # Check if single-instance messaging is working
+   log stream --predicate 'eventMessage contains "com.octarine.clipper.nativeMessage"'
+   ```
+
 ### Performance Issues
 
 #### Slow Content Extraction
@@ -192,6 +232,10 @@
 
 ### Error Messages
 
+#### "Another instance is already running"
+**Cause**: Single-instance architecture preventing duplicates
+**Fix**: This is normal behavior - the message was forwarded to the existing instance
+
 #### "Failed to parse message"
 **Cause**: Malformed JSON from Chrome
 **Fix**: Check content for unescaped quotes
@@ -208,6 +252,8 @@
 
 #### Reset Everything
 ```bash
+# Kill any running instances
+pkill OctarineMenubar
 # Remove all data and settings
 rm -rf ~/Documents/Octarine/
 rm -f ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/com.octarine.clipper.json
