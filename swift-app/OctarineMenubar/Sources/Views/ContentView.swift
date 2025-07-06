@@ -8,12 +8,27 @@ struct ContentView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Tab selector
-            Picker("", selection: $selectedTab) {
-                Text("Timer").tag(0)
-                Text("Clippings").tag(1)
+            // Header with tab selector and quit button
+            HStack {
+                Picker("", selection: $selectedTab) {
+                    Text("Timer").tag(0)
+                    Text("Clippings").tag(1)
+                }
+                .pickerStyle(SegmentedPickerStyle())
+                .frame(maxWidth: 200)
+                
+                Spacer()
+                
+                Button(action: {
+                    NSApplication.shared.terminate(nil)
+                }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.secondary)
+                        .font(.system(size: 16))
+                }
+                .buttonStyle(PlainButtonStyle())
+                .help("Quit Octarine")
             }
-            .pickerStyle(SegmentedPickerStyle())
             .padding()
             
             Divider()

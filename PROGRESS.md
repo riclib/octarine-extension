@@ -37,6 +37,12 @@
    - Subsequent launches forward messages and exit
    - All clippings go through the same instance
    - UI updates work properly (icon change, list refresh)
+4. Fixed app persistence when launched by Chrome:
+   - App now stays resident after Chrome disconnects
+   - Added proper activation policy for menubar apps
+5. Added quit button to the UI:
+   - X button in top-right corner of popover
+   - Provides clean way to exit the app
 
 ### 📁 Project Structure
 ```
@@ -80,5 +86,5 @@ Instead of native messaging, add a simple HTTP server to the Swift app:
 - Extension uses `fetch()` instead of `chrome.runtime.sendNativeMessage()`
 
 ---
-**Last working session**: July 6, 2025, 2:30 AM
+**Last working session**: July 6, 2025, 5:00 PM
 **GitHub repo**: https://github.com/riclib/octarine-extension

@@ -29,8 +29,9 @@ class NativeMessagingHost {
             // Read the message length (4 bytes)
             let lengthData = stdin.readData(ofLength: 4)
             guard lengthData.count == 4 else { 
-                fputs("[NativeMessaging] Failed to read length, exiting\n", stderr)
-                break 
+                fputs("[NativeMessaging] Chrome disconnected, but app will stay resident\n", stderr)
+                // Don't exit - just stop reading messages
+                return
             }
             
             let length = lengthData.withUnsafeBytes { $0.load(as: UInt32.self) }
