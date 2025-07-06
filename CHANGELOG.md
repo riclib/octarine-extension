@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Implemented distributed notifications for inter-process communication
+- Clippings list now updates automatically when saving from Chrome extension
+- Visual feedback (checkmark) shows for all successful clippings
+- Filename sanitization now removes trailing non-alphanumeric characters, preventing broken markdown links in daily notes
+
+### Added
+- Debug logging for notification system (temporary, will be removed before release)
+
+## [1.0.0] - 2025-01-06
+
 ### Added
 - Initial Chrome extension with Manifest V3
 - Content extraction using Readability.js

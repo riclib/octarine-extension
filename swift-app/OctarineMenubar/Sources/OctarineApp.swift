@@ -74,6 +74,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             name: ClippingManager.didSaveClippingNotification,
             object: nil
         )
+        
+        // Listen for distributed notifications from native messaging process
+        let timestamp = DateFormatter.localizedString(from: Date(), dateStyle: .none, timeStyle: .medium)
+        print("[AppDelegate] [\(timestamp)] Setting up distributed notification observer (PID: \(ProcessInfo.processInfo.processIdentifier))")
+        
+        DistributedNotificationCenter.default().addObserver(
+            self,
+            selector: #selector(distributedClippingDidSave(_:)),
+            name: NSNotification.Name("com.octarine.clipping.saved"),
+            object: nil
+        )
     }
     
     @objc func togglePopover() {
@@ -87,6 +98,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc func clippingDidSave() {
+        let timestamp = DateFormatter.localizedString(from: Date(), dateStyle: .none, timeStyle: .medium)
+        print("[AppDelegate] [\(timestamp)] Local notification received - showing checkmark (PID: \(ProcessInfo.processInfo.processIdentifier))")
+        
         // Ensure UI updates happen on main thread
         DispatchQueue.main.async { [weak self] in
             // Change icon to success checkmark
@@ -103,6 +117,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     button.image = NSImage(systemSymbolName: "doc.text", accessibilityDescription: "Octarine")
                 }
             }
+        }
+    }
+    
+    @objc func distributedClippingDidSave(_ notification: Notification) {
+        let timestamp = DateFormatter.localizedString(from: Date(), dateStyle: .none, timeStyle: .medium)
+        let senderTimestamp = notification.userInfo?["timestamp"] as? String ?? "unknown"
+        print("[AppDelegate] [\(timestamp)] Distributed notification received from timestamp: \(senderTimestamp) (PID: \(ProcessInfo.processInfo.processIdentifier))")
+        
+        // Reload clippings on main thread
+        DispatchQueue.main.async { [weak self] in
+            print("[AppDelegate] [\(timestamp)] Reloading clippings list")
+            self?.clippingManager?.loadRecentClippings()
+            
+            // Also show checkmark for distributed notifications
+            self?.clippingDidSave()
         }
     }
 }
